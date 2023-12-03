@@ -158,7 +158,7 @@
 
 				const format = ( renderer.capabilities.isWebGL2 ) ? THREE.RedFormat : THREE.LuminanceFormat;
 
-                var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 20, 20);
+                var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 1000, 1000);
 
                 // Adjust the material properties
                 var waterMaterial = new THREE.MeshStandardMaterial({
