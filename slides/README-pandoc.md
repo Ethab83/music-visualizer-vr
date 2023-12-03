@@ -30,7 +30,7 @@ The modulator is inspired by [modular synthesis](https://en.wikipedia.org/wiki/M
 
 ## About the Spectrum Analyzer
 
-The spectrum analyzer is the brains of the audio parsing. It uses `THREE.AudioAnalyser` to compute a Fast Fourier Transform (mapping amplitude to frequency) for every call to the animation loop.
+The spectrum analyzer is the brains of the audio parsing. It uses `THREE.AudioAnalyser` to compute a [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (mapping amplitude to frequency) for every call to the animation loop.
 
 The frequency ranges (e.g. Bass, Treble, Volume) are then calculated by averaging the amplitude values in a set range.
 
