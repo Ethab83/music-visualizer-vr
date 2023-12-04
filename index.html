@@ -13,7 +13,7 @@
 		</div>
 		<div id="container"></div>
 		<div id="info">
-			<a href="https://threejs.org" target="_blank" rel="noopener noreferrer">three.js</a> webaudio - visualizer<br/>
+			<a href="https://threejs.org" target="_blank" rel="noopener noreferrer">three.js</a> music - visualizer - vr<br/>
 			music by <a href="https://yewtu.be/watch?v=J3xcLmS31FE" target="_blank" rel="noopener">Toshiki Kadomatsu
             </a>
 		</div>
@@ -256,6 +256,11 @@
                     for (let Modulator of SCENE.Modulators) {
                         destinationParams[Modulator.this.destinationParam](destinations[Modulator.this.destination], sources[Modulator.this.source](), Modulator.this.x, Modulator.this.y);
                     }
+
+                    // Update the offset of the water texture to create the flowing effect
+                    destinations['Water'].material.uniforms[ 'time' ].value += 1.0 / 60.0;
+                    // console.log(destinations['Water'].material)
+
 
                     renderer.render(scene, camera);
                 });

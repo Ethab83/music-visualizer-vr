@@ -20,14 +20,21 @@ The modulator is inspired by [modular synthesis](https://en.wikipedia.org/wiki/M
 
 ## Upcoming features
 
-- Ability to add moculator x and y controls as destinations.
-- Separate modulator into 3D and 2D modulators
+- Better VR support
+- More objects (particles, lights, etc.)
+- Ability to add modulator controls as destinations for other modulators.
+- Upload your own music
+- Use microphone input
 
-## About the Spectrum Analyzer
+## Technology Used
 
-The spectrum analyzer is the brains of the audio parsing. It uses `THREE.AudioAnalyser` to compute a [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (mapping amplitude to frequency) for every call to the animation loop.
+### Audio Parsing
 
-The frequency ranges (e.g. Bass, Treble, Volume) are then calculated by averaging the amplitude values in a set range.
+The spectrum analyzer is the brains of the audio parsing. It uses `THREE.AudioAnalyser` to compute a [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (mapping amplitude to frequency).
+
+### VR
+
+The VR support is done using [WebXR](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API). Currently no iPhone support :(
 
 ## References
 

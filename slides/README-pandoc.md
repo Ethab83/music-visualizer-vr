@@ -11,7 +11,7 @@ theme: metropolis
 
 [Click HERE for Demo](https://ethab83.github.io/music-visualizer-vr/)
 
-- Upon page load, click play button to start visualization
+- Upon page load, click ![play button](play_button.png){width=40} to start visualization
 - Mess around with x and y controls
 - Click "Add Modulator" to add a new modulator
     - no actual functionality yet
@@ -28,19 +28,25 @@ The modulator is inspired by [modular synthesis](https://en.wikipedia.org/wiki/M
 
 ---
 
-## About the Spectrum Analyzer
+## Upcoming features
 
-The spectrum analyzer is the brains of the audio parsing. It uses `THREE.AudioAnalyser` to compute a [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (mapping amplitude to frequency) for every call to the animation loop.
-
-The frequency ranges (e.g. Bass, Treble, Volume) are then calculated by averaging the amplitude values in a set range.
+- Better VR support
+- More objects (particles, lights, etc.)
+- Ability to add modulator controls as destinations for other modulators.
+- Upload your own music
+- Use microphone input
 
 ---
 
-## Upcoming features
+## Technology Used
 
-- Ability to add moculator x and y controls as destinations.
-- Separate modulator into 3D and 2D modulators
-- More objects?
+### Audio Parsing
+
+The spectrum analyzer is the brains of the audio parsing. It uses `THREE.AudioAnalyser` to compute a [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) (mapping amplitude to frequency).
+
+### VR
+
+The VR support is done using [WebXR](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API). Currently no iPhone support :(
 
 ---
 
