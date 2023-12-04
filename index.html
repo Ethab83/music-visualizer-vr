@@ -23,6 +23,7 @@
 				"imports": {
                     "three": "https://unpkg.com/three@latest/build/three.module.js",
                     "three/addons/": "https://unpkg.com/three@latest/examples/jsm/",
+                    "three/examples/": "https://unpkg.com/three@latest/examples/jsm/",
                     "dat.gui": "https://unpkg.com/dat.gui@latest/build/dat.gui.module.js"
 				}
 			}
@@ -34,6 +35,9 @@
             import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
             import { Water } from 'three/addons/objects/Water.js';
             import * as dat from 'dat.gui';
+            import { XRControllerModelFactory } from 'three/examples/webxr/XRControllerModelFactory.js';
+            import { VRButton } from 'three/examples/webxr/VRButton.js';
+
 
             let scene, camera, renderer, analyser, controls;
 
@@ -128,7 +132,20 @@
 
                 renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                
+                renderer.xr.enabled = true; // Enable WebXR
+
+                // Add VR button
+                document.body.appendChild(VRButton.createButton(renderer));
+
+                // Create controller
+                const controller1 = renderer.xr.getController(0);
+                scene.add(controller1);
+
+                // Load controller models
+                const controllerModelFactory = new XRControllerModelFactory();
+                const controllerGrip1 = renderer.xr.getControllerGrip(0);
+                controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
+                scene.add(controllerGrip1);
 
 				const listener = new THREE.AudioListener();
 
@@ -231,18 +248,18 @@
 
 			function animate() {
 
-				requestAnimationFrame( animate );
+                renderer.setAnimationLoop(function () {
+                    analyser.getFrequencyData();
+                    controls.update();    
 
-                analyser.getFrequencyData();
-                controls.update();    
-                
-                // Apply all Modulators
-                for (let Modulator of SCENE.Modulators) {
-                    destinationParams[Modulator.this.destinationParam](destinations[Modulator.this.destination], sources[Modulator.this.source](), Modulator.this.x, Modulator.this.y);
-                }
-                
-                renderer.render( scene, camera );
-			}
+                    // Apply all Modulators
+                    for (let Modulator of SCENE.Modulators) {
+                        destinationParams[Modulator.this.destinationParam](destinations[Modulator.this.destination], sources[Modulator.this.source](), Modulator.this.x, Modulator.this.y);
+                    }
+
+                    renderer.render(scene, camera);
+                });
+            }
 
             function morphObject(object, modData, x, y) {
                 console.log(object)
