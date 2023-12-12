@@ -41,6 +41,8 @@ The VR support is done using [WebXR](https://developer.mozilla.org/en-US/docs/We
 I dont know much css, I just copied the css from three.js examples
 
 - [THREE.js audio visualizer example](https://github.com/mrdoob/three.js/blob/master/examples/webaudio_visualizer.html)
+- [THREE.js webgl shaders ocean](https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_ocean.html)
 - [THREE.js audio visualiser by santosharron](https://github.com/santosharron/audio-visualizer-three-js)
+- [simplex-noise.js](https://29a.ch/simplex-noise/docs/index.html#400)
 - ChatGPT
 - UMass Boston CS460!
