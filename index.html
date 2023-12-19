@@ -30,11 +30,11 @@
 		</script>
 
 		<script type="module">
-
+            
+            import * as dat from 'dat.gui';
 			import * as THREE from 'three';
             import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
             import { Water } from 'three/addons/objects/Water.js';
-            import * as dat from 'dat.gui';
             import { XRControllerModelFactory } from 'three/examples/webxr/XRControllerModelFactory.js';
             import { VRButton } from 'three/examples/webxr/VRButton.js';
 
@@ -43,49 +43,44 @@
 
             // * * * SETTINGS and HELPER for DAT.GUI * * * 
             window['SCENE'] = {
-                Modulators: []
+                Modulators: [],
+                Destinations: {
+                    'Water': null
+                },
+                Sources: {
+                    'Spectrum Analyzer': () => analyser.data,
+                    'Bass': () => getAmplitude(0, analyser.data.length / 4, analyser.data),
+                    'Treble': () => getAmplitude(analyser.data.length / 4, analyser.data.length / 2, analyser.data),
+                    'Mid': () => getAmplitude(analyser.data.length / 2, analyser.data.length * 3 / 4, analyser.data),
+                    'High': () => getAmplitude(analyser.data.length * 3 / 4, analyser.data.length, analyser.data),
+                    'Volume': () => getAmplitude(0, analyser.data.length, analyser.data),
+                    'Noise Function': () => { /* TODO */ }
+                },
+                DestinationParams: {
+                    'Object': morphObject,
+                    'Color': morphColor,
+                    'Size': morphSize,
+                    'Position': morphPosition
+                }
             }
-
-            // Define the sources and destinations
-            // Define the sources and destinations
-            const sources = {
-                'Spectrum Analyzer': () => analyser.data,
-                'Bass': () => getAmplitude(0, analyser.data.length / 4, analyser.data),
-                'Treble': () => getAmplitude(analyser.data.length / 4, analyser.data.length / 2, analyser.data),
-                'Mid': () => getAmplitude(analyser.data.length / 2, analyser.data.length * 3 / 4, analyser.data),
-                'High': () => getAmplitude(analyser.data.length * 3 / 4, analyser.data.length, analyser.data),
-                'Volume': () => getAmplitude(0, analyser.data.length, analyser.data),
-                'Noise Function': () => { /* TODO */ }
-            };
-
-            const destinations = {
-                'Water': null
-            };
-
-            const destinationParams = {
-                'Object': morphObject,
-                'Color': morphColor,
-                'Size': morphSize,
-                'Position': morphPosition
-            };
 
             let numModulators = 0;
 
             // Define an object to hold the data for dat.GUI
             const modData = {
-                source: Object.keys(sources)[0],
-                destination: Object.keys(destinations)[0],
-                destinationParam: Object.keys(destinationParams)[0],
+                source: Object.keys(SCENE.Sources)[0],
+                destination: Object.keys(SCENE.Destinations)[0],
+                destinationParam: Object.keys(SCENE.DestinationParams)[0],
                 x: 50,
                 y: 50,
                 addModulator: function() {
-                        
+                    
                     const newFolder = gui.addFolder('Modulator ' + ++numModulators);
 
                     // Add a dropdown for the sources and destinations to the GUI
-                    newFolder.add(modData, 'source', Object.keys(sources));
-                    newFolder.add(modData, 'destination', Object.keys(destinations));
-                    newFolder.add(modData, 'destinationParam', Object.keys(destinationParams));
+                    newFolder.add(modData, 'source', Object.keys(SCENE.Sources));
+                    newFolder.add(modData, 'destination', Object.keys(SCENE.Destinations));
+                    newFolder.add(modData, 'destinationParam', Object.keys(SCENE.DestinationParams));
                     newFolder.add(modData, 'x').min(1).max(100.0);
                     newFolder.add(modData, 'y').min(1).max(100.0);
 
@@ -96,8 +91,8 @@
                     SCENE.Modulators.push({ this: this });
                     
                     // Add the x and y parameters to the destinations object
-                    destinations['Modulator ' + numModulators + '->x'] = modData.x;
-                    destinations['Modulator ' + numModulators + '->y'] = modData.y;
+                    SCENE.Destinations['Modulator ' + numModulators + '->x'] = modData.x;
+                    SCENE.Destinations['Modulator ' + numModulators + '->y'] = modData.y;
                 }
             };
 
@@ -184,7 +179,7 @@
                     metalness: 0.02,
                 });
                 
-                destinations['Water'] = new Water(
+                SCENE.Destinations['Water'] = new Water(
                     waterGeometry,
                     {
                         textureWidth: 512,
@@ -200,10 +195,10 @@
                         fog: scene.fog !== undefined
                     }
                 );
-                destinations['Water'].rotation.x = -0.5 * Math.PI;
-                destinations['Water'].position.set(0, -100, 0);
+                SCENE.Destinations['Water'].rotation.x = -0.5 * Math.PI;
+                SCENE.Destinations['Water'].position.set(0, -100, 0);
 
-                group.add(destinations['Water']);
+                group.add(SCENE.Destinations['Water']);
                 
                 var ambientLight = new THREE.AmbientLight(0xaaaaaa);
                 scene.add(ambientLight);
@@ -221,7 +216,7 @@
                 container.appendChild(renderer.domElement);
                     
                 // Store the original positions of the vertices
-                const positions = destinations['Water'].geometry.attributes.position;
+                const positions = SCENE.Destinations['Water'].geometry.attributes.position;
                 for (let i = 0; i < positions.count; i++) {
                     originalPositions.push(new THREE.Vector3(
                         positions.array[i * 3 + 0],
@@ -254,12 +249,11 @@
 
                     // Apply all Modulators
                     for (let Modulator of SCENE.Modulators) {
-                        destinationParams[Modulator.this.destinationParam](destinations[Modulator.this.destination], sources[Modulator.this.source](), Modulator.this.x, Modulator.this.y);
+                        SCENE.DestinationParams[Modulator.this.destinationParam](SCENE.Destinations[Modulator.this.destination], SCENE.Sources[Modulator.this.source](), Modulator.this.x, Modulator.this.y);
                     }
 
                     // Update the offset of the water texture to create the flowing effect
-                    destinations['Water'].material.uniforms[ 'time' ].value += 1.0 / 60.0;
-                    // console.log(destinations['Water'].material)
+                    SCENE.Destinations['Water'].material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
 
                     renderer.render(scene, camera);
@@ -267,7 +261,6 @@
             }
 
             function morphObject(object, modData, x, y) {
-                console.log(object)
                 switch(object.type) {
                     case 'Mesh':
                         switch(object.geometry.type) {
@@ -287,7 +280,6 @@
 
             function morphColor(object, modData, x, y) {
                 const color = object.material.color;
-                console.log(object)
                 const data = modData[0] / 256.0;
                 const displacement = data * x;
 
@@ -320,7 +312,7 @@
                     console.log('TODO: implement')
                 }
                 // Modulate the vertices based on the audio data
-                const positions = destinations['Water'].geometry.attributes.position;
+                const positions = SCENE.Destinations['Water'].geometry.attributes.position;
                 for (let i = 0; i < positions.count; i++) {
                     const originalPosition = originalPositions[i];
                     const distance = Math.sqrt(
@@ -338,7 +330,7 @@
                 }
 
                 // Need to set this flag to true so the changes are picked up by the renderer
-                destinations['Water'].geometry.attributes.position.needsUpdate = true;
+                SCENE.Destinations['Water'].geometry.attributes.position.needsUpdate = true;
             }
 
             function morphLight(object, modData, x, y) {
