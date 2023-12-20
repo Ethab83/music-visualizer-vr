@@ -46,7 +46,8 @@
             Modulators: [],
             Destinations: {
                 'Water': null,
-                'Light': null,
+                'Light1': null,
+                'Light2': null,
             },
             Sources: {
                 'Spectrum Analyzer': () => analyser.data,
@@ -66,20 +67,20 @@
         
         // Define an object to hold the data for dat.GUI
         class modData {
-            constructor() {
+            constructor(source, destination, destinationParam, x, y) {
                 SCENE.Modulators.push(this);
-
-                this.source = Object.keys(SCENE.Sources)[0];
-                this.destination = Object.keys(SCENE.Destinations)[0];
-                this.destinationParam = Object.keys(SCENE.DestinationParams)[0];
-                this.x = 50;
-                this.y = 50;
+                
+                this.source = Object.keys(SCENE.Sources)[source];
+                this.destination = Object.keys(SCENE.Destinations)[destination];
+                this.destinationParam = Object.keys(SCENE.DestinationParams)[destinationParam];
+                this.x = x;
+                this.y = y;
             }
         }
-
-        function addModulator() {
-            let modulator = new modData();
-
+        
+        function addModulator(source=0, destination=0, destinationParam=0, x=50, y=50) {
+            let modulator = new modData(source, destination, destinationParam, x, y);
+            
             let numModulators = SCENE.Modulators.length;
             
             const newFolder = gui.addFolder('Modulator ' + numModulators);
@@ -90,9 +91,6 @@
             newFolder.add(modulator, 'destinationParam', Object.keys(SCENE.DestinationParams));
             newFolder.add(modulator, 'x').min(1).max(100.0);
             newFolder.add(modulator, 'y').min(1).max(100.0);
-            
-            // Open the folder
-            newFolder.open();
             
             // Add the x and y parameters to the destinations object
             SCENE.Destinations['Modulator ' + numModulators + '→x'] = modData.x;
@@ -137,6 +135,23 @@
             
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.BasicShadowMap;
+            
+            
+            
+            // * * * SKY-SPHERE * * *
+            
+            const skySphereGeometry = new THREE.SphereGeometry( 4000, 32, 32 );
+            const skySphereMaterial = new THREE.MeshPhongMaterial( {
+                color: 0xa0adaf,
+                shininess: 10,
+                specular: 0x111111,
+                side: THREE.BackSide
+            } );
+            const skySphere = new THREE.Mesh( skySphereGeometry, skySphereMaterial );
+            skySphere.receiveShadow = true;
+            scene.add( skySphere );
             
             
             
@@ -149,7 +164,7 @@
             // scene.add( mesh );
             
             
-            var waterGeometry = new THREE.PlaneGeometry(10000, 10000, 500, 500);
+            var waterGeometry = new THREE.PlaneGeometry(8000, 8000, 500, 500);
             
             SCENE.Destinations['Water'] = new Water(
             waterGeometry,
@@ -179,15 +194,6 @@
             
             // * * * LIGHT * * *
             
-            var ambientLight = new THREE.AmbientLight(0xffffff);
-            scene.add(ambientLight);
-            
-            
-            var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-            directionalLight.position.set( 100, 100, 100 );
-            scene.add( directionalLight );
-            
-
             function generateTexture() {
                 
                 const canvas = document.createElement( 'canvas' );
@@ -203,9 +209,9 @@
             
             function createLight( color ) {
                 
-                const intensity = 200;
+                const intensity = 2000;
                 
-                const light = new THREE.PointLight( color, intensity, 20 );
+                const light = new THREE.PointLight( color, intensity, 8000, 0.5 );
                 light.castShadow = true;
                 light.shadow.bias = - 0.005; // reduces self-shadowing on double-sided objects
                 
@@ -225,7 +231,8 @@
                 material = new THREE.MeshPhongMaterial( {
                     side: THREE.DoubleSide,
                     alphaMap: texture,
-                    alphaTest: 0.5
+                    alphaTest: 0.5,
+                    opacity: 0
                 } );
                 
                 sphere = new THREE.Mesh( geometry, material );
@@ -237,8 +244,11 @@
             }
             
             
-            SCENE.Destinations['Light'] = createLight( 0x0088ff );
-            scene.add( SCENE.Destinations['Light'] );
+            SCENE.Destinations['Light1'] = createLight( 0x0088ff );
+            SCENE.Destinations['Light2'] = createLight( 0xff8888 );
+            
+            scene.add( SCENE.Destinations['Light1'] );
+            scene.add( SCENE.Destinations['Light2'] );
             
             
             
@@ -287,16 +297,17 @@
             
             
             
-            scene.fog = new THREE.FogExp2(0x000000, 0.0003);
-            renderer.setClearColor(scene.fog.color);
+            // scene.fog = new THREE.FogExp2(0x000000, 0.0003);
+            // renderer.setClearColor(scene.fog.color);
             
             
             container.appendChild( renderer.domElement );
             controls = new OrbitControls( camera, renderer.domElement );
             window.addEventListener( 'resize', onWindowResize );
             
-            addModulator();
-            
+            addModulator(0, 1, 0, 75, 25);
+            addModulator(0, 2, 0, 25, 75);
+
             animate();
             
         }
@@ -314,6 +325,7 @@
         
         
         function animate() {
+            console.log(SCENE.Destinations['Modulator 1→x'])
             
             renderer.setAnimationLoop(function () {
                 analyser.getFrequencyData();
@@ -327,7 +339,14 @@
                     let x = Modulator.x;
                     let y = Modulator.y;
                     
-                    destinationParam(destination, source, x, y);
+                    // if the destination is a modulator parameter,
+                    // there is no destination param
+                    if(typeof destination === 'number') {
+                        morphParam(destination, source, x, y);
+                    }
+                    else {
+                        destinationParam(destination, source, x, y);
+                    }
                 }
                 
                 // Update the offset of the water texture to create the flowing effect
@@ -337,14 +356,24 @@
                 // Update the position of the Point light
                 let time = performance.now() * 0.001;
                 
-                SCENE.Destinations['Light'].position.x = Math.sin( time * 0.6 ) * 9;
-                SCENE.Destinations['Light'].position.y = Math.sin( time * 0.7 ) * 9 + 6;
-                SCENE.Destinations['Light'].position.z = Math.sin( time * 0.8 ) * 9;
                 
-                SCENE.Destinations['Light'].rotation.x = time;
-                SCENE.Destinations['Light'].rotation.z = time;
+                SCENE.Destinations['Light1'].position.x = Math.sin( time * 0.6 ) * 9;
+                SCENE.Destinations['Light1'].position.y = Math.sin( time * 0.7 ) * 9 + 6;
+                SCENE.Destinations['Light1'].position.z = Math.sin( time * 0.8 ) * 9;
                 
-
+                SCENE.Destinations['Light1'].rotation.x = time;
+                SCENE.Destinations['Light1'].rotation.z = time;
+                
+                
+                time += 10000;
+                
+                SCENE.Destinations['Light2'].position.x = Math.sin( time * 0.6 ) * 9;
+                SCENE.Destinations['Light2'].position.y = Math.sin( time * 0.7 ) * 9 + 6;
+                SCENE.Destinations['Light2'].position.z = Math.sin( time * 0.8 ) * 9;
+                
+                SCENE.Destinations['Light2'].rotation.x = time;
+                SCENE.Destinations['Light2'].rotation.z = time;
+                
                 renderer.render(scene, camera);
             });
         }
@@ -362,9 +391,9 @@
             return total / (freqHigh - freqLow + 1);
         }
         
-
         
-        // * * * Modulation Functions * * *
+        
+        // * * * MORPHING FUNCTIONS * * *
         
         function morphPosition(object, modData, x, y) {
             switch(object.type) {
@@ -421,7 +450,7 @@
                 else {
                     data = getAmplitude(0, modData.length, modData);
                 }
-
+                
                 // Update the vertex position based on the original position
                 object.intensity = data * x / 100 + y - 100;
             }
@@ -444,6 +473,11 @@
             
             // Update the vertex position based on the original position
             object.material.color.set(0xff0000); // This will change the color to red
+        }
+        
+        function morphParam(object, modData, x, y) {
+            console.log(object)
+            object = modData * (y/100) - 1000 + x;
         }
     </script>
     
