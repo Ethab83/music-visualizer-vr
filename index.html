@@ -59,8 +59,8 @@
             },
             DestinationParams: {
                 'Position': morphPosition,
-                'Color': morphColor,
-                'Size': morphSize,
+                // 'Color': morphColor,
+                // 'Size': morphSize,
             },
             AddModulator: addModulator
         }
@@ -144,8 +144,8 @@
             
             const skySphereGeometry = new THREE.SphereGeometry( 4000, 32, 32 );
             const skySphereMaterial = new THREE.MeshPhongMaterial( {
-                color: 0xa0adaf,
-                shininess: 10,
+                color: 0xffffff,
+                shininess: 100,
                 specular: 0x111111,
                 side: THREE.BackSide
             } );
@@ -215,27 +215,21 @@
                 light.castShadow = true;
                 light.shadow.bias = - 0.005; // reduces self-shadowing on double-sided objects
                 
-                let geometry = new THREE.SphereGeometry( 0.3, 12, 6 );
-                let material = new THREE.MeshBasicMaterial( { color: color } );
-                material.color.multiplyScalar( intensity );
-                let sphere = new THREE.Mesh( geometry, material );
-                light.add( sphere );
-                
                 const texture = new THREE.CanvasTexture( generateTexture() );
                 texture.magFilter = THREE.NearestFilter;
                 texture.wrapT = THREE.RepeatWrapping;
                 texture.wrapS = THREE.RepeatWrapping;
                 texture.repeat.set( 1, 4.5 );
                 
-                geometry = new THREE.SphereGeometry( 2, 32, 8 );
-                material = new THREE.MeshPhongMaterial( {
+                let geometry = new THREE.SphereGeometry( 2, 32, 8 );
+                let material = new THREE.MeshPhongMaterial( {
                     side: THREE.DoubleSide,
                     alphaMap: texture,
                     alphaTest: 0.5,
                     opacity: 0
                 } );
                 
-                sphere = new THREE.Mesh( geometry, material );
+                let sphere = new THREE.Mesh( geometry, material );
                 sphere.castShadow = true;
                 sphere.receiveShadow = true;
                 light.add( sphere );
@@ -305,8 +299,8 @@
             controls = new OrbitControls( camera, renderer.domElement );
             window.addEventListener( 'resize', onWindowResize );
             
-            addModulator(0, 1, 0, 75, 25);
-            addModulator(0, 2, 0, 25, 75);
+            addModulator(5, 1, 0, 75, 50);
+            addModulator(1, 2, 0, 30, 50);
 
             animate();
             
@@ -357,9 +351,9 @@
                 let time = performance.now() * 0.001;
                 
                 
-                SCENE.Destinations['Light1'].position.x = Math.sin( time * 0.6 ) * 9;
-                SCENE.Destinations['Light1'].position.y = Math.sin( time * 0.7 ) * 9 + 6;
-                SCENE.Destinations['Light1'].position.z = Math.sin( time * 0.8 ) * 9;
+                SCENE.Destinations['Light1'].position.x = Math.sin( time * 0.6 ) * 90;
+                SCENE.Destinations['Light1'].position.y = Math.sin( time * 0.7 ) * 90 + 6;
+                SCENE.Destinations['Light1'].position.z = Math.sin( time * 0.8 ) * 90;
                 
                 SCENE.Destinations['Light1'].rotation.x = time;
                 SCENE.Destinations['Light1'].rotation.z = time;
@@ -367,9 +361,9 @@
                 
                 time += 10000;
                 
-                SCENE.Destinations['Light2'].position.x = Math.sin( time * 0.6 ) * 9;
-                SCENE.Destinations['Light2'].position.y = Math.sin( time * 0.7 ) * 9 + 6;
-                SCENE.Destinations['Light2'].position.z = Math.sin( time * 0.8 ) * 9;
+                SCENE.Destinations['Light2'].position.x = Math.sin( time * 0.6 ) * 90;
+                SCENE.Destinations['Light2'].position.y = Math.sin( time * 0.7 ) * 90 + 6;
+                SCENE.Destinations['Light2'].position.z = Math.sin( time * 0.8 ) * 90;
                 
                 SCENE.Destinations['Light2'].rotation.x = time;
                 SCENE.Destinations['Light2'].rotation.z = time;
