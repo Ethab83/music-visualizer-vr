@@ -95,8 +95,8 @@
             newFolder.open();
             
             // Add the x and y parameters to the destinations object
-            SCENE.Destinations['Modulator ' + numModulators + '->x'] = modData.x;
-            SCENE.Destinations['Modulator ' + numModulators + '->y'] = modData.y;
+            SCENE.Destinations['Modulator ' + numModulators + '→x'] = modData.x;
+            SCENE.Destinations['Modulator ' + numModulators + '→y'] = modData.y;
         }
         
         // Create a new instance of dat.GUI
@@ -334,6 +334,7 @@
                 SCENE.Destinations['Water'].material.uniforms[ 'time' ].value += 1.0 / 60.0;
                 
                 
+                // Update the position of the Point light
                 let time = performance.now() * 0.001;
                 
                 SCENE.Destinations['Light'].position.x = Math.sin( time * 0.6 ) * 9;
@@ -343,6 +344,7 @@
                 SCENE.Destinations['Light'].rotation.x = time;
                 SCENE.Destinations['Light'].rotation.z = time;
                 
+
                 renderer.render(scene, camera);
             });
         }
@@ -359,6 +361,8 @@
             }
             return total / (freqHigh - freqLow + 1);
         }
+        
+
         
         // * * * Modulation Functions * * *
         
@@ -417,12 +421,9 @@
                 else {
                     data = getAmplitude(0, modData.length, modData);
                 }
-                
-                const displacement = data * 100;
-                
-                console.log(object)
+
                 // Update the vertex position based on the original position
-                object.intensity = displacement;
+                object.intensity = data * x / 100 + y - 100;
             }
         }
         
@@ -437,7 +438,6 @@
         }
         
         function morphColor(object, modData, x, y) {
-            console.log(object);
             // const color = object.material.color;
             // const data = modData[0] / 256.0;
             // const displacement = data * x;
