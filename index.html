@@ -60,46 +60,50 @@
                 'Position': morphPosition,
                 'Color': morphColor,
                 'Size': morphSize,
-            }
+            },
+            AddModulator: addModulator
         }
         
         // Define an object to hold the data for dat.GUI
-        const modData = {
-            source: Object.keys(SCENE.Sources)[0],
-            destination: Object.keys(SCENE.Destinations)[0],
-            destinationParam: Object.keys(SCENE.DestinationParams)[0],
-            x: 50,
-            y: 50,
-            addModulator: function() {
-                // Store the Modulator settings
-                SCENE.Modulators.push({ this: this });
-                
-                let numModulators = SCENE.Modulators.length;
-                
-                const newFolder = gui.addFolder('Modulator ' + numModulators);
-                
-                // Add a dropdown for the sources and destinations to the GUI
-                newFolder.add(modData, 'source', Object.keys(SCENE.Sources));
-                newFolder.add(modData, 'destination', Object.keys(SCENE.Destinations));
-                newFolder.add(modData, 'destinationParam', Object.keys(SCENE.DestinationParams));
-                newFolder.add(modData, 'x').min(1).max(100.0);
-                newFolder.add(modData, 'y').min(1).max(100.0);
-                
-                // Open the folder
-                newFolder.open();
-                
-                
-                // Add the x and y parameters to the destinations object
-                SCENE.Destinations['Modulator ' + numModulators + '->x'] = modData.x;
-                SCENE.Destinations['Modulator ' + numModulators + '->y'] = modData.y;
+        class modData {
+            constructor() {
+                SCENE.Modulators.push(this);
+
+                this.source = Object.keys(SCENE.Sources)[0];
+                this.destination = Object.keys(SCENE.Destinations)[0];
+                this.destinationParam = Object.keys(SCENE.DestinationParams)[0];
+                this.x = 50;
+                this.y = 50;
             }
-        };
+        }
+
+        function addModulator() {
+            let modulator = new modData();
+
+            let numModulators = SCENE.Modulators.length;
+            
+            const newFolder = gui.addFolder('Modulator ' + numModulators);
+            
+            // Add a dropdown for the sources and destinations to the GUI
+            newFolder.add(modulator, 'source', Object.keys(SCENE.Sources));
+            newFolder.add(modulator, 'destination', Object.keys(SCENE.Destinations));
+            newFolder.add(modulator, 'destinationParam', Object.keys(SCENE.DestinationParams));
+            newFolder.add(modulator, 'x').min(1).max(100.0);
+            newFolder.add(modulator, 'y').min(1).max(100.0);
+            
+            // Open the folder
+            newFolder.open();
+            
+            // Add the x and y parameters to the destinations object
+            SCENE.Destinations['Modulator ' + numModulators + '->x'] = modData.x;
+            SCENE.Destinations['Modulator ' + numModulators + '->y'] = modData.y;
+        }
         
         // Create a new instance of dat.GUI
         const gui = new dat.GUI();
         
-        // Add a button to the GUI
-        gui.add(modData, 'addModulator').name('Add Modulator');
+        // Add a button to add a modulator
+        gui.add(SCENE, 'AddModulator');
         
         
         
@@ -183,7 +187,7 @@
             directionalLight.position.set( 100, 100, 100 );
             scene.add( directionalLight );
             
-            
+
             function generateTexture() {
                 
                 const canvas = document.createElement( 'canvas' );
@@ -291,7 +295,7 @@
             controls = new OrbitControls( camera, renderer.domElement );
             window.addEventListener( 'resize', onWindowResize );
             
-            modData.addModulator();
+            addModulator();
             
             animate();
             
@@ -317,11 +321,11 @@
                 
                 // Apply all Modulators
                 for (let Modulator of SCENE.Modulators) {
-                    let destinationParam = SCENE.DestinationParams[Modulator.this.destinationParam];
-                    let destination = SCENE.Destinations[Modulator.this.destination];
-                    let source = SCENE.Sources[Modulator.this.source]();
-                    let x = Modulator.this.x;
-                    let y = Modulator.this.y;
+                    let destinationParam = SCENE.DestinationParams[Modulator.destinationParam];
+                    let destination = SCENE.Destinations[Modulator.destination];
+                    let source = SCENE.Sources[Modulator.source]();
+                    let x = Modulator.x;
+                    let y = Modulator.y;
                     
                     destinationParam(destination, source, x, y);
                 }
