@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>three.js webaudio - visualizer</title>
+    <title id="title">three.js webaudio - visualizer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link type="text/css" rel="stylesheet" href="main.css">
@@ -9,15 +9,21 @@
 </head>
 <body>
     <div id="overlay">
+        <div id="info">
+            <a href="https://threejs.org" target="_blank" rel="noopener noreferrer">three.js</a> music - visualizer - vr<br/>
+            music by <a href="https://yewtu.be/watch?v=OIFASfPkw9g" target="_blank" rel="noopener">Toshiki Kadomatsu
+            </a>
+        </div>
+        
         <button id="startButton">Play</button>
+        <h4>OR</h4>
+        <input type="file" id="song-upload" accept="audio/*">
+        <h4>OR</h4>
+        <button id="micButton">Use Microphone</button>
+
     </div>
     <div id="container"></div>
-    <div id="info">
-        <a href="https://threejs.org" target="_blank" rel="noopener noreferrer">three.js</a> music - visualizer - vr<br/>
-        music by <a href="https://yewtu.be/watch?v=J3xcLmS31FE" target="_blank" rel="noopener">Toshiki Kadomatsu
-        </a>
-    </div>
-    
+
     <script type="importmap">
         {
             "imports": {
@@ -108,6 +114,8 @@
         // * * * GLOBALS * * *
         
         var bufferLength = 128;
+
+        let songFile = './sounds/akiko.mp3';
         
         let scene, camera, renderer, analyser, controls;
         
@@ -119,7 +127,7 @@
             
             const overlay = document.getElementById( 'overlay' );
             overlay.remove();
-            
+
             const container = document.getElementById( 'container' );
             
             
@@ -164,7 +172,7 @@
             // scene.add( mesh );
             
             
-            var waterGeometry = new THREE.PlaneGeometry(8000, 8000, 500, 500);
+            var waterGeometry = new THREE.PlaneGeometry(8000, 8000, 100, 100);
             
             SCENE.Destinations['Water'] = new Water(
             waterGeometry,
@@ -174,14 +182,11 @@
                 waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg', function (texture) {
                     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 }),
-                alpha: 1.0,
                 sunDirection: new THREE.Vector3(),
-                sunColor: 0xffffff,
-                waterColor: 0x001e0f,
-                distortionScale: 3.7,
-                fog: scene.fog !== undefined
-            }
-            );
+                sunColor: 0x000000,//0xffffff,
+                waterColor: 0x000000,
+                distortionScale: 3.7
+            });
             
             SCENE.Destinations['Water'].rotation.x = -0.5 * Math.PI;
             SCENE.Destinations['Water'].position.set(0, -100, 0);
@@ -194,26 +199,26 @@
             
             // * * * LIGHT * * *
             
-            function generateTexture() {
-                
-                const canvas = document.createElement( 'canvas' );
-                canvas.width = 2;
-                canvas.height = 2;
-                
-                const context = canvas.getContext( '2d' );
-                context.fillStyle = 'white';
-                context.fillRect( 0, 1, 2, 1 );
-                
-                return canvas;
-            }
-            
             function createLight( color ) {
                 
-                const intensity = 2000;
+                const intensity = 200;
                 
                 const light = new THREE.PointLight( color, intensity, 8000, 0.5 );
                 light.castShadow = true;
                 light.shadow.bias = - 0.005; // reduces self-shadowing on double-sided objects
+                
+                function generateTexture() {
+                    
+                    const canvas = document.createElement( 'canvas' );
+                    canvas.width = 2;
+                    canvas.height = 2;
+                    
+                    const context = canvas.getContext( '2d' );
+                    context.fillStyle = 'white';
+                    context.fillRect( 0, 1, 2, 1 );
+                    
+                    return canvas;
+                }
                 
                 const texture = new THREE.CanvasTexture( generateTexture() );
                 texture.magFilter = THREE.NearestFilter;
@@ -262,54 +267,59 @@
             const controllerGrip1 = renderer.xr.getControllerGrip(0);
             controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
             scene.add(controllerGrip1);
-            
+
+
+
+            // * * * MUSIC * * *
+
             const listener = new THREE.AudioListener();
-            
             const audio = new THREE.Audio( listener );
-            const file = './sounds/akiko.mp3';
             
-            if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
-                
-                const loader = new THREE.AudioLoader();
-                loader.load( file, function ( buffer ) {
+            if (songFile !== null) {
+                if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
                     
-                    audio.setBuffer( buffer );
-                    audio.play();
+                    const loader = new THREE.AudioLoader();
+                    loader.load( songFile, function ( buffer ) {
+                        
+                        audio.setBuffer( buffer );
+                        audio.play();
+                        
+                    } );
                     
-                } );
-                
-            } else {
-                
-                const mediaElement = new Audio( file );
-                mediaElement.play();
-                
-                audio.setMediaElementSource( mediaElement );
-                
+                } else {
+                    
+                    const mediaElement = new Audio( songFile );
+                    mediaElement.play();
+                    
+                    audio.setMediaElementSource( mediaElement );
+                    
+                }
             }
-            
+            else { 
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function(stream) {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        audio.setMediaStreamSource( stream );
+                    })
+                    .catch(function(err) {
+                        console.error('Error accessing microphone: ' + err);
+                });
+            }
+
             analyser = new THREE.AudioAnalyser( audio, bufferLength );
             
-            
-            
-            // scene.fog = new THREE.FogExp2(0x000000, 0.0003);
-            // renderer.setClearColor(scene.fog.color);
-            
-            
             container.appendChild( renderer.domElement );
+
             controls = new OrbitControls( camera, renderer.domElement );
             window.addEventListener( 'resize', onWindowResize );
             
+            addModulator();
             addModulator(5, 1, 0, 75, 50);
             addModulator(1, 2, 0, 30, 50);
 
             animate();
-            
         }
         
-        
-        function onWindowResize() {
-            renderer.setSize( window.innerWidth, window.innerHeight );
-        }
         
         
         // * * * EVENT LISTENERS * * *
@@ -317,6 +327,23 @@
         const startButton = document.getElementById( 'startButton' );
         startButton.addEventListener( 'click', init );
         
+        const micButton = document.getElementById( 'micButton' );
+        micButton.addEventListener( 'click', function() {
+            songFile = null;
+            init();
+        });
+        
+        function onWindowResize() {
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+        
+        document.getElementById('song-upload').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            songFile = URL.createObjectURL(file);
+
+            console.log(songFile);
+            init();
+        });
         
         function animate() {
             console.log(SCENE.Destinations['Modulator 1→x'])
