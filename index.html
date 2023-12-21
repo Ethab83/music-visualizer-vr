@@ -303,7 +303,10 @@
                     })
                     .catch(function(err) {
                         console.error('Error accessing microphone: ' + err);
-                });
+                    });
+
+                // mute audio to prevent feedback
+                listener.setMasterVolume(0);
             }
 
             analyser = new THREE.AudioAnalyser( audio, bufferLength );
@@ -322,7 +325,7 @@
         
         
         
-        // * * * EVENT LISTENERS * * *
+        // * * * EVENT LISTENERS * * *        
         
         const startButton = document.getElementById( 'startButton' );
         startButton.addEventListener( 'click', init );
