@@ -175,7 +175,9 @@
             
             
             var waterGeometry = new THREE.PlaneGeometry(8000, 8000, 100, 100);
-            
+            var alphaTexture = new THREE.DataTexture(new Uint8Array([64]), 1, 1, THREE.AlphaFormat); // 128 is about 50% opacity
+            alphaTexture.needsUpdate = true;
+
             SCENE.Destinations['Water'] = new Water(
             waterGeometry,
             {
@@ -184,9 +186,10 @@
                 waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg', function (texture) {
                     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 }),
+                alphaMap: alphaTexture, // use the alpha texture as the alpha map
                 sunDirection: new THREE.Vector3(),
-                sunColor: 0x000000,
-                waterColor: 0x000000,
+                sunColor: 0x000066,
+                waterColor: 0x002244,
                 distortionScale: 3.7
             });
             
@@ -200,6 +203,11 @@
             
             
             // * * * LIGHT * * *
+            
+            // directional light
+            const directionalLight = new THREE.DirectionalLight( 0x2244ff, 1.0 );
+            directionalLight.position.set( 0, 1, 0 );
+            scene.add( directionalLight );
             
             function createLight( color, width, num, textureFile ) {
                 
@@ -247,7 +255,7 @@
             
             
             SCENE.Destinations['Light1'] = createLight( 0x0088ff, 0.5, 36, "blender_wave_texture.png" );
-            SCENE.Destinations['Light2'] = createLight( 0xff8888, 0.5, 36, "blender_magic_texture.png" );
+            SCENE.Destinations['Light2'] = createLight( 0xff8888, 0.5, 36, "black.png" );
             
             scene.add( SCENE.Destinations['Light1'] );
             scene.add( SCENE.Destinations['Light2'] );
