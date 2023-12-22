@@ -99,8 +99,8 @@
             newFolder.add(modulator, 'y').min(1).max(100.0);
             
             // Add the x and y parameters to the destinations object
-            SCENE.Destinations['Modulator ' + numModulators + '→x'] = modData.x;
-            SCENE.Destinations['Modulator ' + numModulators + '→y'] = modData.y;
+            SCENE.Destinations['Modulator ' + numModulators + '→x'] = { modulator: modulator, param: "x" };
+            SCENE.Destinations['Modulator ' + numModulators + '→y'] = { modulator: modulator, param: "y" };
         }
         
         // Create a new instance of dat.GUI
@@ -328,6 +328,8 @@
             addModulator();
             addModulator(5, 1, 0, 75, 50);
             addModulator(1, 2, 0, 30, 50);
+            addModulator(5, 3, 0, 20, 20);
+            addModulator(5, 5, 0, 70, 50);
             
             animate();
         }
@@ -371,9 +373,9 @@
                     let x = Modulator.x;
                     let y = Modulator.y;
                     
-                    // if the destination is a modulator parameter,
+                    // if the destination is a object with a modulator and param,
                     // there is no destination param
-                    if(typeof destination === 'number') {
+                    if(destination.modulator != null) {
                         morphParam(destination, source, x, y);
                     }
                     else {
@@ -510,8 +512,11 @@
         }
         
         function morphParam(object, modData, x, y) {
-            console.log(object)
-            object = modData * (y/100) - 1000 + x;
+            // if moddata is a list
+            if(modData.length != null) {
+                modData = getAmplitude(0, modData.length, modData);
+            }
+            object.modulator[object.param] = modData * (y/200) + (x/100);
         }
     </script>
     
