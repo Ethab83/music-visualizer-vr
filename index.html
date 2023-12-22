@@ -210,7 +210,6 @@
             scene.add( directionalLight );
             
             function createLight( color, width, num, textureFile ) {
-                
                 const intensity = 200;
                 
                 const light = new THREE.PointLight( color, intensity, 8000, 0.5 );
@@ -359,7 +358,6 @@
         });
         
         function animate() {
-            console.log(SCENE.Destinations['Modulator 1→x'])
             
             renderer.setAnimationLoop(function () {
                 analyser.getFrequencyData();
@@ -387,26 +385,28 @@
                 SCENE.Destinations['Water'].material.uniforms[ 'time' ].value += 1.0 / 60.0;
                 
                 
-                // Update the position of the Point light
-                let time = performance.now() * 0.001;
-                
-                
-                SCENE.Destinations['Light1'].position.x = Math.sin( time * 0.6 ) * 90;
-                SCENE.Destinations['Light1'].position.y = Math.sin( time * 0.7 ) * 90 + 6;
-                SCENE.Destinations['Light1'].position.z = Math.sin( time * 0.8 ) * 90;
-                
-                SCENE.Destinations['Light1'].rotation.x = time;
-                SCENE.Destinations['Light1'].rotation.z = time;
-                
-                
-                time += 10000;
-                
-                SCENE.Destinations['Light2'].position.x = Math.sin( time * 0.6 ) * 90;
-                SCENE.Destinations['Light2'].position.y = Math.sin( time * 0.7 ) * 90 + 6;
-                SCENE.Destinations['Light2'].position.z = Math.sin( time * 0.8 ) * 90;
-                
-                SCENE.Destinations['Light2'].rotation.x = time;
-                SCENE.Destinations['Light2'].rotation.z = time;
+                function updateLightPositions() {
+                    let time = performance.now() * 0.001;
+
+                    for (let i = 1; i <= 100; i++) {
+                        let light = SCENE.Destinations['Light' + i];
+                        if (typeof light === 'undefined') {
+                            break;
+                        }
+
+                        light.position.x = Math.sin(time * 0.6) * 90;
+                        light.position.y = Math.sin(time * 0.7) * 90 + 6;
+                        light.position.z = Math.sin(time * 0.8) * 90;
+
+                        light.rotation.x = time;
+                        light.rotation.z = time;
+
+                        time += 10000;
+                    }
+                }
+
+                // Call the function to update light positions
+                updateLightPositions();
                 
                 renderer.render(scene, camera);
             });
