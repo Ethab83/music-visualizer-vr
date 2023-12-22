@@ -20,10 +20,10 @@
         <input type="file" id="song-upload" accept="audio/*">
         <h4>OR</h4>
         <button id="micButton">Use Microphone</button>
-
+        
     </div>
     <div id="container"></div>
-
+    
     <script type="importmap">
         {
             "imports": {
@@ -114,7 +114,7 @@
         // * * * GLOBALS * * *
         
         var bufferLength = 128;
-
+        
         let songFile = './sounds/akiko.mp3';
         
         let scene, camera, renderer, analyser, controls;
@@ -127,7 +127,7 @@
             
             const overlay = document.getElementById( 'overlay' );
             overlay.remove();
-
+            
             const container = document.getElementById( 'container' );
             
             
@@ -145,6 +145,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.BasicShadowMap;
+            
+            container.appendChild( renderer.domElement );
             
             
             
@@ -183,7 +185,7 @@
                     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 }),
                 sunDirection: new THREE.Vector3(),
-                sunColor: 0x000000,//0xffffff,
+                sunColor: 0x000000,
                 waterColor: 0x000000,
                 distortionScale: 3.7
             });
@@ -199,7 +201,7 @@
             
             // * * * LIGHT * * *
             
-            function createLight( color ) {
+            function createLight( color, width, num, textureFile ) {
                 
                 const intensity = 200;
                 
@@ -207,44 +209,45 @@
                 light.castShadow = true;
                 light.shadow.bias = - 0.005; // reduces self-shadowing on double-sided objects
                 
-                function generateTexture() {
+                let loader = new THREE.TextureLoader();
+                
+                loader.load(
+                // resource URL
+                'textures/' + textureFile,
+                
+                // onLoad callback
+                function ( texture ) {
                     
-                    const canvas = document.createElement( 'canvas' );
-                    canvas.width = 2;
-                    canvas.height = 2;
                     
-                    const context = canvas.getContext( '2d' );
-                    context.fillStyle = 'white';
-                    context.fillRect( 0, 1, 2, 1 );
-                    
-                    return canvas;
+                    let geometry = new THREE.SphereGeometry( 2, 32, 8 );
+                    let material = new THREE.MeshPhongMaterial( {
+                        side: THREE.DoubleSide,
+                        alphaMap: texture,
+                        alphaTest: 0.5,
+                        opacity: 0
+                    } );
+                    let sphere = new THREE.Mesh( geometry, material );
+                    sphere.castShadow = true;
+                    light.add( sphere );
+                },
+                
+                // onProgress callback currently not supported
+                undefined,
+                
+                // onError callback
+                function ( err ) {
+                    console.error( 'An error happened.' );
                 }
+                );
                 
-                const texture = new THREE.CanvasTexture( generateTexture() );
-                texture.magFilter = THREE.NearestFilter;
-                texture.wrapT = THREE.RepeatWrapping;
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.repeat.set( 1, 4.5 );
                 
-                let geometry = new THREE.SphereGeometry( 2, 32, 8 );
-                let material = new THREE.MeshPhongMaterial( {
-                    side: THREE.DoubleSide,
-                    alphaMap: texture,
-                    alphaTest: 0.5,
-                    opacity: 0
-                } );
-                
-                let sphere = new THREE.Mesh( geometry, material );
-                sphere.castShadow = true;
-                sphere.receiveShadow = true;
-                light.add( sphere );
                 
                 return light;
             }
             
             
-            SCENE.Destinations['Light1'] = createLight( 0x0088ff );
-            SCENE.Destinations['Light2'] = createLight( 0xff8888 );
+            SCENE.Destinations['Light1'] = createLight( 0x0088ff, 0.5, 36, "blender_wave_texture.png" );
+            SCENE.Destinations['Light2'] = createLight( 0xff8888, 0.5, 36, "blender_magic_texture.png" );
             
             scene.add( SCENE.Destinations['Light1'] );
             scene.add( SCENE.Destinations['Light2'] );
@@ -267,11 +270,11 @@
             const controllerGrip1 = renderer.xr.getControllerGrip(0);
             controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
             scene.add(controllerGrip1);
-
-
-
+            
+            
+            
             // * * * MUSIC * * *
-
+            
             const listener = new THREE.AudioListener();
             const audio = new THREE.Audio( listener );
             
@@ -297,29 +300,28 @@
             }
             else { 
                 navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(function(stream) {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        audio.setMediaStreamSource( stream );
-                    })
-                    .catch(function(err) {
-                        console.error('Error accessing microphone: ' + err);
-                    });
-
+                .then(function(stream) {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audio.setMediaStreamSource( stream );
+                })
+                .catch(function(err) {
+                    console.error('Error accessing microphone: ' + err);
+                });
+                
                 // mute audio to prevent feedback
                 listener.setMasterVolume(0);
             }
-
+            
             analyser = new THREE.AudioAnalyser( audio, bufferLength );
             
-            container.appendChild( renderer.domElement );
-
+            
             controls = new OrbitControls( camera, renderer.domElement );
             window.addEventListener( 'resize', onWindowResize );
             
             addModulator();
             addModulator(5, 1, 0, 75, 50);
             addModulator(1, 2, 0, 30, 50);
-
+            
             animate();
         }
         
@@ -343,7 +345,7 @@
         document.getElementById('song-upload').addEventListener('change', function(e) {
             let file = e.target.files[0];
             songFile = URL.createObjectURL(file);
-
+            
             console.log(songFile);
             init();
         });
