@@ -51,56 +51,84 @@
         window['SCENE'] = {
             Modulators: [],
             Destinations: {
-                'Water': null,
-                'Light1': null,
-                'Light2': null,
+                'Water': {
+                    object: null,
+                    params: {
+                        'Waves': morphWaves,
+                    }
+                },
+                'Light1': {
+                    object: null,
+                    params: {
+                        'Intensity': morphIntensity,
+                        'Color': morphColor,
+                    }
+                },
+                'Light2': {
+                    object: null,
+                    params: {
+                        'Intensity': morphIntensity,
+                        'Color': morphColor,
+                    }
+                }
             },
             Sources: {
-                'Spectrum Analyzer': () => analyser.data,
+                'Spectrum Analyser': () => analyser.data,
                 'Bass': () => getAmplitude(0, analyser.data.length / 4, analyser.data),
                 'Treble': () => getAmplitude(analyser.data.length / 4, analyser.data.length / 2, analyser.data),
                 'Mid': () => getAmplitude(analyser.data.length / 2, analyser.data.length * 3 / 4, analyser.data),
                 'High': () => getAmplitude(analyser.data.length * 3 / 4, analyser.data.length, analyser.data),
                 'Volume': () => getAmplitude(0, analyser.data.length, analyser.data),
             },
-            DestinationParams: {
-                'Position': morphPosition,
-                // 'Color': morphColor,
-                // 'Size': morphSize,
-            },
             AddModulator: addModulator
         }
         
         // Define an object to hold the data for dat.GUI
         class modData {
-            constructor(source, destination, destinationParam, x, y) {
+            constructor(source, destination, param, x, y) {
                 SCENE.Modulators.push(this);
                 
-                this.source = Object.keys(SCENE.Sources)[source];
-                this.destination = Object.keys(SCENE.Destinations)[destination];
-                this.destinationParam = Object.keys(SCENE.DestinationParams)[destinationParam];
+                this.source = source;
+                this.destination = destination;
+                this.param = param;
                 this.x = x;
                 this.y = y;
             }
         }
         
-        function addModulator(source=0, destination=0, destinationParam=0, x=50, y=50) {
-            let modulator = new modData(source, destination, destinationParam, x, y);
+        function addModulator(source='Volume', destination='Water', param='Waves', x=50, y=50) {
+            let modulator = new modData(source, destination, param, x, y);
+
+            let sourceGui, destGui, destParamGui, xGui, yGui;
             
             let numModulators = SCENE.Modulators.length;
             
             const newFolder = gui.addFolder('Modulator ' + numModulators);
             
             // Add a dropdown for the sources and destinations to the GUI
-            newFolder.add(modulator, 'source', Object.keys(SCENE.Sources));
-            newFolder.add(modulator, 'destination', Object.keys(SCENE.Destinations));
-            newFolder.add(modulator, 'destinationParam', Object.keys(SCENE.DestinationParams));
-            newFolder.add(modulator, 'x').min(1).max(100.0);
-            newFolder.add(modulator, 'y').min(1).max(100.0);
+            destGui = newFolder.add(modulator, 'destination', Object.keys(SCENE.Destinations)).onChange(function(value) {
+                
+                modulator.param = Object.keys(SCENE.Destinations[value].params)[0];
+                
+                newFolder.remove(sourceGui);
+                newFolder.remove(destParamGui);
+                newFolder.remove(xGui);
+                newFolder.remove(yGui);
+                
+                destParamGui = newFolder.add(modulator, 'param', Object.keys(SCENE.Destinations[value].params));
+                sourceGui = newFolder.add(modulator, 'source', Object.keys(SCENE.Sources));
+                xGui = newFolder.add(modulator, 'x').min(1).max(100.0);
+                yGui = newFolder.add(modulator, 'y').min(1).max(100.0);
+                
+            });
+            
+            destParamGui = newFolder.add(modulator, 'param', Object.keys(SCENE.Destinations[destination].params));
+            sourceGui = newFolder.add(modulator, 'source', Object.keys(SCENE.Sources));
+            xGui = newFolder.add(modulator, 'x').min(1).max(100.0);
+            yGui = newFolder.add(modulator, 'y').min(1).max(100.0);
             
             // Add the x and y parameters to the destinations object
-            SCENE.Destinations['Modulator ' + numModulators + '→x'] = { modulator: modulator, param: "x" };
-            SCENE.Destinations['Modulator ' + numModulators + '→y'] = { modulator: modulator, param: "y" };
+            SCENE.Destinations['Modulator ' + numModulators] = { object: modulator, params: { x: 'x', y: 'y' }};
         }
         
         // Create a new instance of dat.GUI
@@ -178,7 +206,7 @@
             var alphaTexture = new THREE.DataTexture(new Uint8Array([64]), 1, 1, THREE.AlphaFormat); // 128 is about 50% opacity
             alphaTexture.needsUpdate = true;
 
-            SCENE.Destinations['Water'] = new Water(
+            let water = new Water(
             waterGeometry,
             {
                 textureWidth: 512,
@@ -193,10 +221,12 @@
                 distortionScale: 3.7
             });
             
-            SCENE.Destinations['Water'].rotation.x = -0.5 * Math.PI;
-            SCENE.Destinations['Water'].position.set(0, -100, 0);
+            water.rotation.x = -0.5 * Math.PI;
+            water.position.set(0, -100, 0);
+
+            SCENE.Destinations['Water'].object = water;
             
-            group.add( SCENE.Destinations['Water'] );
+            group.add( SCENE.Destinations['Water'].object );
             
             scene.add( group );
             
@@ -224,8 +254,6 @@
                 
                 // onLoad callback
                 function ( texture ) {
-                    
-                    
                     let geometry = new THREE.SphereGeometry( 2, 32, 8 );
                     let material = new THREE.MeshPhongMaterial( {
                         side: THREE.DoubleSide,
@@ -253,11 +281,11 @@
             }
             
             
-            SCENE.Destinations['Light1'] = createLight( 0x0088ff, 0.5, 36, "blender_wave_texture.png" );
-            SCENE.Destinations['Light2'] = createLight( 0xff8888, 0.5, 36, "black.png" );
+            SCENE.Destinations['Light1'].object = createLight( 0x0088ff, 0.5, 36, 'blender_wave_texture.png' );
+            SCENE.Destinations['Light2'].object = createLight( 0xff8888, 0.5, 36, 'black.png' );
             
-            scene.add( SCENE.Destinations['Light1'] );
-            scene.add( SCENE.Destinations['Light2'] );
+            scene.add( SCENE.Destinations['Light1'].object );
+            scene.add( SCENE.Destinations['Light2'].object );
             
             
             
@@ -325,11 +353,11 @@
             controls = new OrbitControls( camera, renderer.domElement );
             window.addEventListener( 'resize', onWindowResize );
             
-            addModulator();
-            addModulator(5, 1, 0, 75, 50);
-            addModulator(1, 2, 0, 30, 50);
-            addModulator(5, 3, 0, 20, 20);
-            addModulator(5, 5, 0, 70, 50);
+            addModulator('Spectrum Analyser', 'Water', 'Waves', 50, 50);
+            addModulator('Treble', 'Light1', 'Intensity', 30, 50);
+            addModulator('Bass', 'Light2', 'Intensity', 75, 50);
+            addModulator('Mid', 'Modulator 1', 'x', 20, 20);
+            addModulator('Volume', 'Modulator 2', 'x', 70, 50);
             
             animate();
         }
@@ -355,7 +383,6 @@
             let file = e.target.files[0];
             songFile = URL.createObjectURL(file);
             
-            console.log(songFile);
             init();
         });
         
@@ -367,34 +394,38 @@
                 
                 // Apply all Modulators
                 for (let Modulator of SCENE.Modulators) {
-                    let destinationParam = SCENE.DestinationParams[Modulator.destinationParam];
                     let destination = SCENE.Destinations[Modulator.destination];
+                    let param = destination.params[Modulator.param];
+                    let object = destination.object;
                     let source = SCENE.Sources[Modulator.source]();
                     let x = Modulator.x;
                     let y = Modulator.y;
-                    
-                    // if the destination is a object with a modulator and param,
-                    // there is no destination param
-                    if(destination.modulator != null) {
-                        morphParam(destination, source, x, y);
+
+                    // if the destination is a modulator, apply the modulator
+                    if(destination.object instanceof modData) {
+                        morphParam(object, param, source, x, y);
+                        break;
                     }
-                    else {
-                        destinationParam(destination, source, x, y);
-                    }
+
+                    param(object, source, x, y);
+
                 }
                 
                 // Update the offset of the water texture to create the flowing effect
-                SCENE.Destinations['Water'].material.uniforms[ 'time' ].value += 1.0 / 60.0;
+                SCENE.Destinations['Water'].object.material.uniforms[ 'time' ].value += 1.0 / 60.0;
                 
                 
                 function updateLightPositions() {
                     let time = performance.now() * 0.001;
 
                     for (let i = 1; i <= 100; i++) {
-                        let light = SCENE.Destinations['Light' + i];
-                        if (typeof light === 'undefined') {
+                        let dest = SCENE.Destinations['Light' + i];
+
+                        if (typeof dest === 'undefined') {
                             break;
                         }
+
+                        let light = dest.object;
 
                         light.position.x = Math.sin(time * 0.6) * 90;
                         light.position.y = Math.sin(time * 0.7) * 90 + 6;
@@ -431,67 +462,53 @@
         
         // * * * MORPHING FUNCTIONS * * *
         
-        function morphPosition(object, modData, x, y) {
-            switch(object.type) {
-                case 'Mesh':
-                switch(object.geometry.type) {
-                    case 'PlaneGeometry':
-                    plane(object, modData, x, y);
-                    break;
-                    default:
-                    console.error("Unsupported geometry type: " + object.geometry.type)
-                    break;
-                }
-                break;
-                case 'PointLight':
-                light(object, modData, x, y);
-                break;
-                default:
-                console.error("Unsupported object type: " + object.type)
-                break;
-            }
+        // takes a plane geometry and morphs it in a ripple effect
+        // x: width of the plane
+        // y: height of the plane
+        function morphWaves(object, modData, width, height) {
             
-            function plane(object, modData, width, height) {
+            // Modulate the vertices based on the audio data
+            const positions = object.geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i++) {
+                const distance = Math.sqrt(
+                Math.pow(positions[i * 3 + 0], 2) +
+                Math.pow(positions[i * 3 + 1], 2)
+                );
                 
-                // Modulate the vertices based on the audio data
-                const positions = object.geometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i++) {
-                    const distance = Math.sqrt(
-                    Math.pow(positions[i * 3 + 0], 2) +
-                    Math.pow(positions[i * 3 + 1], 2)
-                    );
-                    
-                    // if modData is one element, 2d modulation
-                    if (modData.length == null) {
-                        positions[i * 3 + 2] = object.position.z + (modData * height / 300);
-                    }
-                    else {
-                        const data = modData[Math.floor(distance / (width)) % analyser.data.length] / 256.0;
-                        const displacement = data * height;
-                        
-                        // Update the vertex position based on the original position
-                        positions[i * 3 + 2] = object.position.z + displacement;
-                    }
-                }
-                
-                // Need to set this flag to true so the changes are picked up by the renderer
-                object.geometry.attributes.position.needsUpdate = true;
-            }
-            
-            function light(object, modData, x, y) {
-                let data;
+                // if modData is one element, 2d modulation
                 if (modData.length == null) {
-                    data = modData;
+                    positions[i * 3 + 2] = object.position.z + (modData * height / 300);
                 }
                 else {
-                    data = getAmplitude(0, modData.length, modData);
+                    const data = modData[Math.floor(distance / (width)) % analyser.data.length] / 256.0;
+                    const displacement = data * height;
+                    
+                    // Update the vertex position based on the original position
+                    positions[i * 3 + 2] = object.position.z + displacement;
                 }
-                
-                // Update the vertex position based on the original position
-                object.intensity = data * x / 100 + y - 100;
             }
+            
+            // Need to set this flag to true so the changes are picked up by the renderer
+            object.geometry.attributes.position.needsUpdate = true;
         }
         
+        // takes a light and morphs it in a ripple effect
+        // x: reactivity to the data (scale)
+        // y: intensity of the light
+        function morphIntensity(object, modData, x, y) {
+            let data;
+            if (modData.length == null) {
+                data = modData;
+            }
+            else {
+                data = getAmplitude(0, modData.length, modData);
+            }
+            
+            // Update the vertex position based on the original position
+            object.intensity = data * x / 100 + y - 100;
+        }
+
+        // TODO: implement
         function morphSize(object, modData, x, y) {
             const data = modData[0] / 256.0;
             const displacement = data;
@@ -502,6 +519,7 @@
             object.scale.z = displacement;
         }
         
+        // TODO: implement
         function morphColor(object, modData, x, y) {
             // const color = object.material.color;
             // const data = modData[0] / 256.0;
@@ -511,12 +529,14 @@
             object.material.color.set(0xff0000); // This will change the color to red
         }
         
-        function morphParam(object, modData, x, y) {
+        // takes a param and modulates it based on the data
+        // TODO: fix x and y
+        function morphParam(object, param, modData, x, y) {
             // if moddata is a list
             if(modData.length != null) {
                 modData = getAmplitude(0, modData.length, modData);
             }
-            object.modulator[object.param] = modData * (y/200) + (x/100);
+            object[param] = modData * (y/200) + (x/100);
         }
     </script>
     
