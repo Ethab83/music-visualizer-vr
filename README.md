@@ -19,7 +19,7 @@ customizable music visualizer with vr support
 
 ## Using the Controls
 
-<img src="images/controls.png" alt="Alt text" width="30%">
+<img src="images/controls.png" alt="Alt text" width="300">
 
 - **bpm**: beats per minute (sets period of oscillation for generated sources)
 - **AddModulator**: creates and adds a new modulator
@@ -29,7 +29,7 @@ customizable music visualizer with vr support
 
 ## Customizing the Modulators
 
-<img src="images/modulator.png" alt="Alt text" width="30%">
+<img src="images/modulator.png" alt="Alt text" width="300">
 
 Each modulator is made up of a source and a destination. The source is the trigger for the modulation. The destination is the visual effect that is being modified by the source.
 
