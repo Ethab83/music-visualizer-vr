@@ -43,12 +43,23 @@
         import { Water } from 'three/addons/objects/Water.js';
         import { XRControllerModelFactory } from 'three/examples/webxr/XRControllerModelFactory.js';
         import { VRButton } from 'three/examples/webxr/VRButton.js';
+                
         
         
+        // * * * GLOBALS * * *
+        
+        var bufferLength = 128;
+        
+        let songFile = './sounds/akiko.mp3';
+        
+        let scene, camera, renderer, analyser, controls;
+        
+        window['bpm'] = 111;
         
         // * * * DAT.GUI * * *
         
         window['SCENE'] = {
+            BPM: 111,
             Modulators: [],
             Destinations: {
                 'Water': {
@@ -61,14 +72,16 @@
                     object: null,
                     params: {
                         'Intensity': morphIntensity,
-                        'Color': morphColor,
+                        'Hue': morphHue,
+                        'Saturation': morphSaturation,
                     }
                 },
                 'Light2': {
                     object: null,
                     params: {
                         'Intensity': morphIntensity,
-                        'Color': morphColor,
+                        'Hue': morphHue,
+                        'Saturation': morphSaturation,
                     }
                 }
             },
@@ -79,6 +92,10 @@
                 'Mid': () => getAmplitude(analyser.data.length / 2, analyser.data.length * 3 / 4, analyser.data),
                 'High': () => getAmplitude(analyser.data.length * 3 / 4, analyser.data.length, analyser.data),
                 'Volume': () => getAmplitude(0, analyser.data.length, analyser.data),
+                'Sine': () => Math.sin(performance.now() * (bpm / 60) * 2 * Math.PI / 1000) * 1000,
+                'Triangle': () => Math.abs((performance.now() * (bpm / 60) * 16 * Math.PI / 100) % 1000 - 500) * 2,
+                'Square': () => Math.sign(Math.sin(performance.now() * (bpm / 60) * 4 * Math.PI / 1000)) * 1000,
+                'Sawtooth': () => ((performance.now() * (bpm / 60) / 8 / 1000) % 1) * 2000 - 1000,
             },
             AddModulator: addModulator
         }
@@ -133,19 +150,13 @@
         
         // Create a new instance of dat.GUI
         const gui = new dat.GUI();
-        
+
+        // BPM slider
+
+        let bpmController = gui.add(window, 'bpm', 1, 180); // Assuming bpm is in the range 1-180
+
         // Add a button to add a modulator
         gui.add(SCENE, 'AddModulator');
-        
-        
-        
-        // * * * GLOBALS * * *
-        
-        var bufferLength = 128;
-        
-        let songFile = './sounds/akiko.mp3';
-        
-        let scene, camera, renderer, analyser, controls;
         
         
         
@@ -520,13 +531,40 @@
         }
         
         // TODO: implement
-        function morphColor(object, modData, x, y) {
-            // const color = object.material.color;
-            // const data = modData[0] / 256.0;
-            // const displacement = data * x;
-            
+        function morphHue(object, modData, x, y) {
+            let data;
+            if (modData.length == null) {
+                data = modData;
+            }
+            else {
+                data = getAmplitude(0, modData.length, modData);
+            }
+
+            let hue = Math.sin(performance.now() * data * x / 100) * x + 1 + y;
+
+            let newColor = new THREE.Color();
+            newColor.setHSL(hue / 100, 1, 0.5);
+
             // Update the vertex position based on the original position
-            object.material.color.set(0xff0000); // This will change the color to red
+            object.color.set(newColor); // This will change the color to red
+        }
+
+        function morphSaturation(object, modData, x, y) {
+            let data;
+            if (modData.length == null) {
+                data = modData;
+            }
+            else {
+                data = getAmplitude(0, modData.length, modData);
+            }
+
+            let saturation = Math.sin(performance.now() * data * x * 1000) * x + 1 + y;
+
+            let newColor = new THREE.Color();
+            newColor.setHSL(0, saturation / 100, 0.5);
+
+            // Update the vertex position based on the original position
+            object.color.set(newColor); // This will change the color to red
         }
         
         // takes a param and modulates it based on the data
