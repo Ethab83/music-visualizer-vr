@@ -15,7 +15,10 @@ customizable music visualizer with vr support
 
 ### VR
 
-> To enter VR mode, click the Enter VR button on the bottom of the viewport.
+To enter VR mode, click the Enter VR button on the bottom of the viewport.
+
+> [!NOTE]
+> The controls are hidden when entering VR mode.
 
 ## Using the Controls
 
@@ -23,9 +26,6 @@ customizable music visualizer with vr support
 
 - **bpm**: beats per minute (sets period of oscillation for generated sources)
 - **AddModulator**: creates and adds a new modulator
-
-> [!NOTE]
-> The controls are hidden when entering WebXR mode.
 
 ## Customizing the Modulators
 
