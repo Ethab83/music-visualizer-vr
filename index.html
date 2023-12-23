@@ -1,4 +1,4 @@
-<!--=====================================================================
+<!--===================================================================
 
                               ;I;              
                               +It.             
@@ -31,7 +31,7 @@
                   ;tIIIIt+;                    
                     ....
 
-============================================================================
+=======================================================================
 
      CREDITS:
     –––––––––––––––––––––––––––––––––––––––––––––––
@@ -256,8 +256,6 @@
             
             
             var waterGeometry = new THREE.PlaneGeometry(8000, 8000, 100, 100);
-            var alphaTexture = new THREE.DataTexture(new Uint8Array([64]), 1, 1, THREE.AlphaFormat); // 128 is about 50% opacity
-            alphaTexture.needsUpdate = true;
 
             let water = new Water(
             waterGeometry,
@@ -267,7 +265,6 @@
                 waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg', function (texture) {
                     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 }),
-                alphaMap: alphaTexture, // use the alpha texture as the alpha map
                 sunDirection: new THREE.Vector3(),
                 sunColor: 0x000066,
                 waterColor: 0x002244,
@@ -407,10 +404,9 @@
             window.addEventListener( 'resize', onWindowResize );
             
             addModulator('Spectrum Analyser', 'Water', 'Waves', 50, 50);
-            addModulator('Treble', 'Light1', 'Intensity', 59, 1);
-            addModulator('Bass', 'Light2', 'Intensity', 43, 46);
+            addModulator('Treble', 'Light1', 'Intensity', 62, 1);
+            addModulator('Bass', 'Light2', 'Intensity', 36, 41);
             addModulator('Mid', 'Modulator 1', 'x', 20, 20);
-            addModulator('Volume', 'Modulator 2', 'x', 70, 50);
             
             animate();
         }
@@ -457,7 +453,7 @@
                     // if the destination is a modulator, apply the modulator
                     if(destination.object instanceof modData) {
                         morphParam(object, param, source, x, y);
-                        break;
+                        continue;
                     }
 
                     param(object, source, x, y);
@@ -582,7 +578,7 @@
                 data = getAmplitude(0, modData.length, modData);
             }
 
-            let hue = Math.sin(performance.now() * data * x / 100) * x + 1 + y;
+            let hue = Math.sin(performance.now() * data * x / 100) * 10 + 1 + y;
 
             let newColor = new THREE.Color();
             newColor.setHSL(hue / 100, 1, 0.5);
@@ -600,7 +596,7 @@
                 data = getAmplitude(0, modData.length, modData);
             }
 
-            let saturation = Math.sin(performance.now() * data * x * 1000) * x + 1 + y;
+            let saturation = (Math.sin(performance.now() * data * x * 1000) + 1) * 100 + y;
 
             let newColor = new THREE.Color();
             newColor.setHSL(0, saturation / 100, 0.5);
