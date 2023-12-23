@@ -1,7 +1,6 @@
 # [music-visualizer-vr][pages-url]
 
-[![GitHub deployments][pages]
-][pages-url]
+[![GitHub deployments][pages]][pages-url]
 [![License: MIT][license]][license-url]
 
 customizable music visualizer with vr support
