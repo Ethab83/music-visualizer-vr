@@ -578,7 +578,7 @@
                 data = getAmplitude(0, modData.length, modData);
             }
 
-            let hue = Math.sin(performance.now() * data * x / 100) * 10 + 1 + y;
+            let hue = Math.sin(performance.now() * data / 3000) * 30 * x/100 + 1 + y;
 
             let newColor = new THREE.Color();
             newColor.setHSL(hue / 100, 1, 0.5);
@@ -596,7 +596,7 @@
                 data = getAmplitude(0, modData.length, modData);
             }
 
-            let saturation = (Math.sin(performance.now() * data * x * 1000) + 1) * 100 + y;
+            let saturation = Math.sin(performance.now() * data / 3000) * 30 * x/100 + 1 + y;
 
             let newColor = new THREE.Color();
             newColor.setHSL(0, saturation / 100, 0.5);

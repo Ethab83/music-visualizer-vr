@@ -75,8 +75,8 @@ Each parameter responds differently to x and y controls of the modulator, the ma
 |----------------|--------------------|------------|
 | **Waves**      | distance           | height     |
 | **Intensity**  | reactivity (scale) | intensity  |
-| **Hue**        | rate of change     | hue        |
-| **Saturation** | rate of change     | saturation |
+| **Hue**        | range of hue     | hue        |
+| **Saturation** | range of saturation     | saturation |
 | **x**          | reactivity (scale) | actual x   |
 | **y**          | reactivity (scale) | actual y   |
 
