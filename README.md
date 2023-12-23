@@ -8,7 +8,9 @@ customizable music visualizer with vr support
 ## Usage
 
 <img src="images/play_button.png" alt="Alt text" height="50"> Start playing default song - [52nd Street](https://yewtu.be/watch?v=OIFASfPkw9g)
+
 <img src="images/upload_button.png" alt="Alt text" height="40"> Upload your own music to play
+
 <img src="images/mic_button.png" alt="Alt text" height="50"> Use your microphone as the audio source
 
 ### Controls
@@ -16,14 +18,14 @@ customizable music visualizer with vr support
 > [!NOTE]
 > The controls are hidden when entering WebXR mode.
 
-<img src="images/controls.png" alt="Alt text" width="50%">
+<img src="images/controls.png" alt="Alt text" width="30%">
 
 - **bpm**: beats per minute (sets period of oscillation for generated sources)
 - **AddModulator**: creates and adds a new modulator
 
 ### Modulators
 
-<img src="images/modulator.png" alt="Alt text" width="50%">
+<img src="images/modulator.png" alt="Alt text" width="30%">
 
 Each modulator is made up of a source and a destination. The source is the trigger for the modulation. The destination is the visual effect that is being modified by the source.
 
