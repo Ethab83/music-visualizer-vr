@@ -354,8 +354,8 @@
             window.addEventListener( 'resize', onWindowResize );
             
             addModulator('Spectrum Analyser', 'Water', 'Waves', 50, 50);
-            addModulator('Treble', 'Light1', 'Intensity', 30, 50);
-            addModulator('Bass', 'Light2', 'Intensity', 75, 50);
+            addModulator('Treble', 'Light1', 'Intensity', 59, 1);
+            addModulator('Bass', 'Light2', 'Intensity', 43, 46);
             addModulator('Mid', 'Modulator 1', 'x', 20, 20);
             addModulator('Volume', 'Modulator 2', 'x', 70, 50);
             
@@ -530,13 +530,14 @@
         }
         
         // takes a param and modulates it based on the data
-        // TODO: fix x and y
+        // x: reactivity to the data (scale)
+        // y: actual value of the param
         function morphParam(object, param, modData, x, y) {
             // if moddata is a list
             if(modData.length != null) {
                 modData = getAmplitude(0, modData.length, modData);
             }
-            object[param] = modData * (y/200) + (x/100);
+            object[param] = modData * (x/100) + (y/4);
         }
     </script>
     
